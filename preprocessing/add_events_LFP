@@ -1,6 +1,6 @@
 %% Add events from .mat files to each subject's LFP sets
-% The .mat files containing event labels (from EMG_KIN) must be copied
-% into the same folder as the LFP .set files (and in the same order).
+% The .mat files with event labels (from EMG_KIN) must be copied
+% into the same folder as the LFP .set files (in the same order).
 
 clear; clc;
 
@@ -9,7 +9,6 @@ subject_list = {'wue02', 'wue03', 'wue05', 'wue06', 'wue07', 'wue09', 'wue10', '
 
 base_path = 'C:\Users\tomma\OneDrive - University of Pisa\Desktop\TESI\Dataset_tesi';
 
-[ALLEEG, EEG, CURRENTSET] = eeglab;
 
 for s = 1:length(subject_list)
     
@@ -21,7 +20,7 @@ for s = 1:length(subject_list)
     % List .set files
     set_files = dir(fullfile(set_path, '*.set'));
 
-    % List .mat files containing events
+    % List .mat files (with events)
     mat_files = dir(fullfile(set_path, '*.mat'));
 
     for f = 1:length(set_files)
@@ -32,7 +31,7 @@ for s = 1:length(subject_list)
         fprintf('Loading events file: %s\n', mat_file);
 
         % Load LFP dataset (.set)
-        EEG = pop_loadset('filename', set_file, 'filepath', set_path);
+        LFP = pop_loadset('filename', set_file, 'filepath', set_path);
         [~, name_base] = fileparts(set_file);
 
         % Load events (.mat structure)
@@ -59,10 +58,10 @@ for s = 1:length(subject_list)
                 if ~isnan(ev_latency) && ~isempty(ev_latency)
                     tmp_event.type     = sprintf('%s_T%d', event_labels{e}, trial);
                     tmp_event.latency  = ev_latency; % in samples
-                    if isempty(EEG.event)
+                    if isempty(LFP.event)
                         tmp_event.urevent = 1;
                     else
-                        tmp_event.urevent = EEG.event(end).urevent + length(new_events) + 1;
+                        tmp_event.urevent = LFP.event(end).urevent + length(new_events) + 1;
                     end
                     % Default EEGLAB event fields
                     tmp_event.code     = 'added';
@@ -76,15 +75,15 @@ for s = 1:length(subject_list)
             end
         end
 
-        % Add events to the dataset
-        EEG.event = [EEG.event, new_events];
-        EEG = eeg_checkset(EEG);
+        % Add events to dataset
+        LFP.event = [LFP.event, new_events];
+        LFP = eeg_checkset(LFP);
 
         % Save new dataset
         out_path = fullfile(base_path, subject_id, 'Extracted', 'LFP_wEv');
         if ~exist(out_path, 'dir'); mkdir(out_path); end
         out_file = [name_base, '_wEv.set'];
-        pop_saveset(EEG, 'filename', out_file, 'filepath', out_path);
+        pop_saveset(LFP, 'filename', out_file, 'filepath', out_path);
         fprintf('Saved: %s\n', out_file);
     end
 end
