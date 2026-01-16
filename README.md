@@ -15,8 +15,8 @@ EEGLAB- and MNE-based pipeline for analyzing cortical–subcortical interactions
 ## Dependencies
 
 ### Python
-Tested with **Python 3.10.18**.
+Developed with **Python 3.10.18**.
 
 ### MATLAB
-Tested with **MATLAB R2024a**. Required toolboxes:
+Developed with **MATLAB R2024a**. Required toolboxes:
 - **EEGLAB** (v2025)
