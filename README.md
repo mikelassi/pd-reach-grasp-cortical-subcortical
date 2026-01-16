@@ -10,7 +10,7 @@ EEGLAB- and MNE-based pipeline for analyzing cortical–subcortical interactions
 - coherence_analysis/: imaginary coherence analyses
 - granger_causality_analysis/: spectral Granger causality analyses
 - bootstrap_testing/: bootstrap testing for connectivity
-- demo/: simulated data and example scripts
+
 
 ## Dependencies
 
