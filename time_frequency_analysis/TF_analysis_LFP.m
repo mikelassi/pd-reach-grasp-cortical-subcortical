@@ -17,8 +17,9 @@ n_subjects = length(subject_list);
 phase_names = {'Rest', 'Reach', 'Grasp', 'Pull'};
 n_phases = length(phase_names);
 
-base_path    = 'C:\Users\tomma\OneDrive - University of Pisa\Desktop\TESI\Dataset_tesi';
-preproc_subfolder = 'Preprocessed_01\LFP_01';
+base_path    = 'H:\Parkinson_ReachGrasp\Reprocessing\wue02\Preprocessed\LFP';
+
+preproc_subfolder = 'Preprocessed\LFP';
 
 eeglab;
 

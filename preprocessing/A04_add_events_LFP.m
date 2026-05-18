@@ -7,21 +7,20 @@ clear; clc;
 % List of subjects
 subject_list = {'wue02', 'wue03', 'wue05', 'wue06', 'wue07', 'wue09', 'wue10', 'wue11'};
 
-base_path = 'C:\Users\tomma\OneDrive - University of Pisa\Desktop\TESI\Dataset_tesi';
-
+base_path = 'H:\Parkinson_ReachGrasp\Reprocessing\';
 
 for s = 1:length(subject_list)
     
     subject_id = subject_list{s};
     fprintf('\n=== Processing subject: %s ===\n', subject_id);
 
-    set_path = fullfile(base_path, subject_id, 'Extracted', 'LFP');
-
+    set_path = fullfile(base_path, subject_id, '01_Extracted', 'LFP');
+    mat_path = fullfile(base_path, subject_id, '02_Kinematics','Events');
     % List .set files
     set_files = dir(fullfile(set_path, '*.set'));
 
     % List .mat files (with events)
-    mat_files = dir(fullfile(set_path, '*.mat'));
+    mat_files = dir(fullfile(mat_path, '*.mat'));
 
     for f = 1:length(set_files)
         set_file = set_files(f).name;
@@ -35,7 +34,7 @@ for s = 1:length(subject_list)
         [~, name_base] = fileparts(set_file);
 
         % Load events (.mat structure)
-        events_matrix = load(fullfile(set_path, mat_file));
+        events_matrix = load(fullfile(mat_path, mat_file));
 
         % Number of trials (usually 10)
         n_trials = length(events_matrix.events); 
@@ -80,7 +79,7 @@ for s = 1:length(subject_list)
         LFP = eeg_checkset(LFP);
 
         % Save new dataset
-        out_path = fullfile(base_path, subject_id, 'Extracted', 'LFP_wEv');
+        out_path = fullfile(base_path, subject_id, '03_SyncRaw', 'LFP_wEv');
         if ~exist(out_path, 'dir'); mkdir(out_path); end
         out_file = [name_base, '_wEv.set'];
         pop_saveset(LFP, 'filename', out_file, 'filepath', out_path);

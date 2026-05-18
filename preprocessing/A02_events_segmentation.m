@@ -37,7 +37,7 @@
 close all;
 
 subject_list = {'wue02','wue03','wue05','wue06','wue07','wue09','wue10','wue11'}; 
-base_path = 'C:\Users\tomma\OneDrive - University of Pisa\Desktop\TESI\Dataset_tesi\';
+base_path = 'H:\Parkinson_ReachGrasp\Reprocessing\';
 eeglab;
 
 
@@ -73,7 +73,7 @@ for s = 1:length(subject_list)
 
 
     % EMG_KIN folder path
-    set_path = fullfile(base_path, subject_id, 'Extracted', 'EMG_KIN');
+    set_path = fullfile(base_path, subject_id, '01_Extracted', 'EMG_KIN');
 
     % List of .set files in the folder
     set_files = dir(fullfile(set_path, '*.set'));
@@ -263,6 +263,18 @@ for s = 1:length(subject_list)
                 end
             end
         end
+        % Define save path for the processed kinematics
+        save_path_kin_mat = fullfile(base_path, subject_id, '02_Kinematics', 'Events');
+        if ~exist(save_path_kin_mat, 'dir')
+            mkdir(save_path_kin_mat);
+        end
+        
+        % Save the kinematic block and events
+        mat_filename = sprintf('%s_kinematic_block.mat', set_file(1:end-4));
+        save(fullfile(save_path_kin_mat, mat_filename), 'kinematic_block', 'events', 'events_times');
+        fprintf('  > Saved processed kinematics to %s\n', mat_filename);
 
     end
 end
+
+

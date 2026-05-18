@@ -27,7 +27,7 @@ clear; clc;
 
 subject_list = {'wue02','wue03','wue05','wue06','wue07','wue09','wue10','wue11'}; 
 
-eeglab;
+eeglab nogui;
 
 %% PATHS (EDIT THIS SECTION)
 

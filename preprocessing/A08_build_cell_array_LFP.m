@@ -35,7 +35,7 @@ clear; clc;
 
 subject_list = {'wue02', 'wue03', 'wue05', 'wue06', 'wue07', 'wue09', 'wue10', 'wue11'};
 
-kin_subfolder = 'Preprocessed\EMG_KIN';
+kin_subfolder = '02_Kinematics\Events';
 
 % Struct for baselines and trial durations
 all_baselines = struct();
@@ -53,12 +53,12 @@ ALLLFP = [];
 for s = 1:length(subject_list)
     
     subject_id = subject_list{s};
-    base_path  = 'C:\Users\tomma\OneDrive - University of Pisa\Desktop\TESI\Dataset_tesi';
-    preproc_path = fullfile(base_path, subject_id, 'Preprocessed_01', 'LFP');
+    base_path  = 'H:\Parkinson_ReachGrasp\Reprocessing';
+    preproc_path = fullfile(base_path, subject_id, 'Preprocessed', 'LFP');
 
     all_baselines.(subject_id) = {}; 
     
-    original_LFP_path = fullfile(base_path, subject_id, 'Extracted', 'LFP_wEv');
+    original_LFP_path = fullfile(base_path,subject_id, '03_SyncRaw', 'LFP_wEv');
     or_set_files = dir(fullfile(original_LFP_path, '*.set'));
     kin_path = fullfile(base_path, subject_id, kin_subfolder);
     
@@ -77,6 +77,8 @@ for s = 1:length(subject_list)
         event_types = {LFP.event.type};
         event_latencies = round([LFP.event.latency]); % sample indices
         
+        event_types_or = {LFP_or.event.type};
+
         % Determine number of trials based on F_T events 
         is_FT = startsWith(event_types, 'F_T');                                      
         nums = cellfun(@(x) str2double(extractAfter(x, 'F_T')), event_types(is_FT)); 
@@ -263,28 +265,41 @@ for s = 1:length(subject_list)
             continue;
         end
 
-        % Isolate region of interest KIN signal
-        event_types_or = {LFP_or.event.type};
-        lat_TEN_idx_all = find(strcmp(event_types_or, 'TENStrigger'));
-        lat_TEN_idx = lat_TEN_idx_all(1);
-        lat_TEN = LFP_or.event(lat_TEN_idx).latency;
-
-        A1_idx = find(strcmp({LFP_or.event.type}, 'A_T1'));
-        F_idx  = find(strcmp({LFP_or.event.type}, sprintf('F_T%d', num_trials)));
-
-        A1_idx_prep = find(strcmp({LFP.event.type}, 'A_T1'));
-        A1_latency_prep = event_latencies(A1_idx_prep);
+    % ========================================================
+        % === NEW ROBUST KINEMATIC ALIGNMENT (NO TENS NEEDED) ===
+        % ========================================================
         
-        first_latency = lat_TEN;
-        second_latency = LFP_or.event(F_idx).latency;
+        % 1. Find A_T in the ORIGINAL file (FORCE FIRST MATCH ONLY)
+        A1_idx_or = find(strcmp({LFP_or.event.type}, 'A_T1'), 1, 'first');
+        if isempty(A1_idx_or)
+            A1_idx_or = find(startsWith({LFP_or.event.type}, 'A_T'), 1, 'first');
+        end
+        A1_latency_or = round(LFP_or.event(A1_idx_or).latency);
         
-        % Converti gli indici LFP in campioni KIN 
-        start_idx_kin = (first_latency + 50);
-        end_idx_kin   = (second_latency+300);
+        % 2. Find A_T in the PREPROCESSED file (FORCE FIRST MATCH ONLY)
+        A1_idx_prep = find(strcmp({LFP.event.type}, 'A_T1'), 1, 'first');
+        if isempty(A1_idx_prep)
+            A1_idx_prep = find(startsWith({LFP.event.type}, 'A_T'), 1, 'first');
+        end
+        A1_latency_prep = round(LFP.event(A1_idx_prep).latency);
         
-        vel_block = kinematic_block.velocity(start_idx_kin:end_idx_kin);
+        % 3. Calculate EXACT Kinematic start and end indices using relative offset
+        samples_chopped = A1_latency_or - A1_latency_prep;
+        
+        start_idx_kin = samples_chopped + 1;
+        end_idx_kin   = start_idx_kin + size(LFP.data, 2) - 1;
+        
+        % 4. Safely extract the matching velocity block
+        if end_idx_kin <= length(kinematic_block.velocity)
+            vel_block = kinematic_block.velocity(start_idx_kin:end_idx_kin);
+        else
+            warning('Kinematic block is shorter than LFP. Truncating to fit.');
+            vel_block = kinematic_block.velocity(start_idx_kin:end);
+        end
         
         time = (0:length(vel_block)-1) / Fs_LFP;
+        % ========================================================
+        % ========================================================
         
         if (strcmp(subject_id, 'wue11') && f == 1)
             trial_to_remove = 5;
@@ -311,9 +326,10 @@ for s = 1:length(subject_list)
             mid_FA_pre  = round(F_lat_pre + (A_lat_curr - F_lat_pre)/2);
             mid_FA_post = round(F_lat_curr + (A_lat_next - F_lat_curr)/2);
         
-            % Converti in indici cinematici (stesso offset del block)
-            kin_start = mid_FA_pre - first_latency + 50;   % prima di mid_FA
-            kin_end   = mid_FA_post - first_latency + 50;  % fino a mid_FA post
+            % Converti in indici cinematici (usando il nuovo offset calcolato)
+            kin_start = mid_FA_pre - samples_chopped;   % prima di mid_FA
+            kin_end   = mid_FA_post - samples_chopped;  % fino a mid_FA post
+        
         
             vel_block(kin_start:kin_end) = [];
         end

@@ -49,8 +49,8 @@ EEG_emgkin.setname = ['kinematic_' name_base];
 
 % Save datasets with appropriate names
 save_path = 'C:\Users\tomma\OneDrive - University of Pisa\Desktop\TESI\Dataset_tesi\wue11\Extracted\'; 
-pop_saveset(EEG_eeg, 'filename', [EEG_eeg.setname '.set'], 'filepath', save_path);
-pop_saveset(EEG_lfp, 'filename', [EEG_lfp.setname '.set'], 'filepath', save_path);
+% pop_saveset(EEG_eeg, 'filename', [EEG_eeg.setname '.set'], 'filepath', save_path);
+% pop_saveset(EEG_lfp, 'filename', [EEG_lfp.setname '.set'], 'filepath', save_path);
 pop_saveset(EEG_emgkin, 'filename', [EEG_emgkin.setname '.set'], 'filepath', save_path);
 
 disp('Splitting completed successfully!');
