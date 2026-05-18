@@ -17,7 +17,7 @@ n_subjects = length(subject_list);
 phase_names = {'Rest', 'Reach', 'Grasp', 'Pull'};
 n_phases = length(phase_names);
 
-base_path    = 'H:\Parkinson_ReachGrasp\Reprocessing\wue02\Preprocessed\LFP';
+base_path    = 'I:\Parkinson_ReachGrasp\Reprocessing\';
 
 preproc_subfolder = 'Preprocessed\LFP';
 
@@ -233,18 +233,40 @@ for s = 1:n_subjects
                 pow_wt_phase_interp = interp1((1:phase_length)', pow_wt_phase(:,:)', x_new_wt_phase', 'linear', 'extrap')';
                 pow_wt_phase_interp_no_norm = interp1((1:phase_length)', pow_wt_phase_no_norm(:,:)', x_new_wt_phase', 'linear', 'extrap')';
             
-                % --- Kinematic signal associated with the phase ---
+               % --- Kinematic signal associated with the phase ---
                 if p == 1
                     start_kin = 1;
                 else 
                     start_kin = end_kin + 1;
                 end
                 end_kin = start_kin + phase_length - 1;
-                kin_phase = kin_signal(start_kin:end_kin);
+            
+                % ==========================================================
+                % ---> FIX: SAFELY CLAMP THE KINEMATIC INDICES <---
+                if isempty(kin_signal)
+                    % If the kinematic data physically ended before this trial started, fill with zeros
+                    kin_phase = zeros(1, max(2, phase_length));
+                else
+                    safe_start = min(start_kin, length(kin_signal));
+                    safe_end   = min(end_kin, length(kin_signal));
+                    
+                    if safe_start >= length(kin_signal)
+                        % If we ran out of kinematic data during the trial, pad with the last value
+                        kin_phase = repmat(kin_signal(end), 1, max(2, phase_length));
+                    else
+                        kin_phase = kin_signal(safe_start:safe_end);
+                    end
+                    
+                    % Failsafe: interp1 requires at least 2 data points to work
+                    if length(kin_phase) < 2
+                        kin_phase = repmat(kin_signal(end), 1, 2);
+                    end
+                end
+                % ==========================================================
             
                 x_new_kin = linspace(1, length(kin_phase), phase_median_length);
                 kin_phase_interp = interp1((1:length(kin_phase)), kin_phase(:), x_new_kin, 'linear', 'extrap');
-            
+
                 % --- Assemble the complete trial ---
                 if p == 1
                     start_phase_interp = 1;
@@ -582,8 +604,8 @@ set(gca, 'FontSize', 12);
 out_dir = fullfile(base_path,'RESULTS/Baseline_01_median');
 
 % Salvataggio
-print(fullfile(out_dir, 'Mean_PSD_all_subjects'), '-dpng', '-r300');
-saveas(gcf, fullfile(out_dir, 'Mean_PSD_all_subjects.fig'));
+% print(fullfile(out_dir, 'Mean_PSD_all_subjects'), '-dpng', '-r300');
+% saveas(gcf, fullfile(out_dir, 'Mean_PSD_all_subjects.fig'));
 
 
 %% =========================
@@ -723,8 +745,8 @@ fig_name = sprintf('All_Subjects_Average_Power_TF');
 out_dir_struct_avg = fullfile(base_path,'RESULTS_final', 'TF_pow_norm_phase_results_01');
 if ~exist(out_dir_struct_avg, 'dir'), mkdir(out_dir_struct_avg); end
 
-print(fullfile(out_dir_struct_avg,fig_name),'-dpng','-r300');
-savefig(fullfile(out_dir_struct_avg,[fig_name '.fig']));
+% print(fullfile(out_dir_struct_avg,fig_name),'-dpng','-r300');
+% savefig(fullfile(out_dir_struct_avg,[fig_name '.fig']));
 
 
 
@@ -824,9 +846,9 @@ ax.YAxis(2).Visible = 'off';
 set(gcf,'Units','pixels','Position',[100,100,1200,600]);
 fig_name = sprintf('All_Subjects_Average_Power_TF');
 
-out_dir_struct_avg_NO_NORM = fullfile(base_path,'RESULTS_final', 'TF_pow_norm_phase_results_NO_NORM');
-if ~exist(out_dir_struct_avg_NO_NORM, 'dir'), mkdir(out_dir_struct_avg_NO_NORM); end
-
-print(fullfile(out_dir_struct_avg_NO_NORM,fig_name),'-dpng','-r300');
-savefig(fullfile(out_dir_struct_avg_NO_NORM,[fig_name '.fig']));
+% out_dir_struct_avg_NO_NORM = fullfile(base_path,'RESULTS_final', 'TF_pow_norm_phase_results_NO_NORM');
+% if ~exist(out_dir_struct_avg_NO_NORM, 'dir'), mkdir(out_dir_struct_avg_NO_NORM); end
+% % 
+% print(fullfile(out_dir_struct_avg_NO_NORM,fig_name),'-dpng','-r300');
+% savefig(fullfile(out_dir_struct_avg_NO_NORM,[fig_name '.fig']));
 
