@@ -1,0 +1,39 @@
+
+CLUSTER RESULTS — significant clusters (cluster p < 0.05)
+M0=subject-mean t | M1=precision-weighted z | M2=mixed-model t
+----------------------------------------------------------------------
+
+## Movement vs baseline (ERD/ERS)
+  Rest_pre vs Reach
+     M0: n.s.
+     M1: n.s.
+     M2: n.s.
+  Rest_pre vs Grasp
+     M0: n.s.
+     M1: n.s.
+     M2: n.s.
+  Rest_pre vs Pull
+     M0: n.s.
+     M1:  40.0- 71.3 Hz  p=0.0469  (Rest_pre<Pull)
+     M2: n.s.
+
+## Post-movement beta rebound (PMBR)
+  Rest_pre vs Rest_post
+     M0:  15.0- 33.6 Hz  p=0.0078  (Rest_pre<Rest_post)
+     M1:  11.9- 37.8 Hz  p=0.0078  (Rest_pre<Rest_post)
+     M2:  11.9- 37.8 Hz  p=0.0078  (Rest_pre<Rest_post)
+
+## Within-movement progression
+  Reach vs Grasp
+     M0: n.s.
+     M1: n.s.
+     M2: n.s.
+  Grasp vs Pull
+     M0: n.s.
+     M1: n.s.
+     M2: n.s.
+  Reach vs Pull
+     M0:   2.0-  2.8 Hz  p=0.0078  (Reach<Pull)
+     M1: n.s.
+     M2: n.s.
+----------------------------------------------------------------------

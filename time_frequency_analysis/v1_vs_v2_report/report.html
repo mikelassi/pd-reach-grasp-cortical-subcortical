@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>STN LFP Time-Frequency: v1 vs v2 — Results Comparison</title>
+<style>
+  :root { --bg:#fff; --fg:#1a1a1a; --mut:#666; --line:#ddd; --v1:#b5651d; --v2:#1d6fb5; --hl:#fff7e6; }
+  body { font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:var(--fg);
+         max-width:1180px; margin:0 auto; padding:32px 28px 80px; line-height:1.55; }
+  h1 { font-size:26px; margin-bottom:4px; }
+  h2 { font-size:20px; margin-top:42px; border-bottom:2px solid var(--line); padding-bottom:6px; }
+  h3 { font-size:16px; margin-top:26px; }
+  .sub { color:var(--mut); font-size:14px; margin-top:0; }
+  .pair { display:flex; gap:18px; margin:18px 0; flex-wrap:wrap; }
+  .pair figure { flex:1 1 480px; margin:0; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .pair figcaption { font-size:13px; padding:8px 12px; background:#fafafa; border-bottom:1px solid var(--line); font-weight:600; }
+  .pair.v1 figcaption { color:var(--v1); } .pair.v2 figcaption { color:var(--v2); }
+  .pair img { width:100%; display:block; }
+  figcaption .tag { display:inline-block; font-size:11px; font-weight:700; padding:1px 7px; border-radius:10px; margin-right:8px; color:#fff; }
+  .t1 { background:var(--v1); } .t2 { background:var(--v2); }
+  table { border-collapse:collapse; width:100%; margin:16px 0; font-size:14px; }
+  th,td { border:1px solid var(--line); padding:8px 11px; text-align:left; vertical-align:top; }
+  th { background:#f5f5f5; }
+  td.v1c { color:var(--v1); } td.v2c { color:var(--v2); }
+  .key { background:var(--hl); border-left:4px solid var(--v1); padding:12px 16px; border-radius:4px; margin:18px 0; }
+  .caveat { background:#f0f6ff; border-left:4px solid var(--v2); padding:12px 16px; border-radius:4px; margin:18px 0; font-size:14px; }
+  code { background:#f3f3f3; padding:1px 5px; border-radius:3px; font-size:13px; }
+  .foot { color:var(--mut); font-size:12.5px; margin-top:40px; border-top:1px solid var(--line); padding-top:14px; }
+  .verdict { font-size:15px; }
+</style>
+</head>
+<body>
+
+<h1>STN LFP Time–Frequency — <span style="color:var(--v1)">v1</span> vs <span style="color:var(--v2)">v2</span></h1>
+<p class="sub">Reach-to-grasp (self-paced), 8 PD subjects, contralateral-hemisphere STN channel. <b>Identical input data</b> —
+the two pipelines differ only in method. Figures generated from
+<code>F:\Projects\Parkinson_ReachGrasp\Reprocessing</code>, R2025a + EEGLAB.</p>
+
+<div class="key verdict">
+<b>Headline:</b> The two pipelines agree on the <b>movement-related beta desynchronisation (ERD)</b> — both show it, in
+every subject. They differ most where it matters scientifically: <b>v2 recovers the post-movement beta rebound (PMBR)</b>,
+which v1 cannot show by construction. v2 is also far cleaner (less interpolation noise) and uses a controlled,
+interpretable scale.
+</div>
+
+<h2>1 · Grand-average time–frequency map</h2>
+<div class="pair v1">
+  <figure>
+    <figcaption><span class="tag t1">v1</span>% change · jet · min/max scale · time in seconds</figcaption>
+    <img src="grand_TF_v1.png" alt="v1 grand average TF">
+  </figure>
+  <figure>
+    <figcaption><span class="tag t2">v2</span>dB re rest · blue–white–red · ±5 dB · % of movement</figcaption>
+    <img src="grand_TF_v2.png" alt="v2 grand average TF">
+  </figure>
+</div>
+<p>Both maps show the <b>two velocity peaks</b> of the task in the overlaid kinematic trace (peak-reach and peak-pull
+velocity) — a good sanity check that the warping is aligned. What differs:</p>
+<ul>
+  <li><b>Beta ERD</b> (≈13–30 Hz drop, blue) is present in both, but in <b>v1</b> it is a continuous smear across the whole
+  window, whereas in <b>v2</b> it localises into two pockets that sit under the two velocity peaks — the physiologically
+  expected pattern.</li>
+  <li><b>Scale.</b> v1 sets its colour limits from the data <code>min/max</code>, so outlier bursts compress the scale and
+  most of the map sits in undifferentiated mid-green. v2's symmetric <code>±5 dB</code> shows graded modulation: a broad,
+  modest power increase (pink) with the beta dips standing out.</li>
+  <li><b>Axes.</b> v1's x-axis is in seconds built from averaged latencies (a fictitious "average trial"); v2's is
+  <b>% of movement</b> with explicit 0 % = onset / 100 % = offset markers — the correct frame for warped data.
+  v1's frequency axis runs uncontrolled to ~80+ Hz (Morse default); v2 is fixed to <code>[1,80] Hz</code>.</li>
+</ul>
+
+<h2>2 · Phase-resolved power spectra <span style="font-weight:400;font-size:14px">(the decisive difference)</span></h2>
+<div class="pair v1">
+  <figure>
+    <figcaption><span class="tag t1">v1</span>4 phases · % change · rest = pre+post (flat zero)</figcaption>
+    <img src="grand_PSD_v1.png" alt="v1 phase PSD">
+  </figure>
+  <figure>
+    <figcaption><span class="tag t2">v2</span>5 phases · dB · rest-pre baseline, rest-post shown separately</figcaption>
+    <img src="grand_PSD_v2.png" alt="v2 phase PSD">
+  </figure>
+</div>
+
+<div class="key">
+<b>This is the single most important result.</b> In <b>v2</b>, the orange <b>Rest (post)</b> trace rises to
+<b>≈ +1.5 dB in the 18–28 Hz band</b> — the classic <b>post-movement beta rebound</b>. In <b>v1</b> this signal is
+<b>invisible</b>: v1 has only four phases and folds the post-movement rest <i>into</i> the baseline, so "Rest" is pinned
+flat at zero by construction. If the PMBR matters to your question (it usually does in PD/STN work), v1 structurally
+cannot report it and v2 can.</li>
+</div>
+
+<p>Both agree on the movement effect — reach (green) and grasp (blue) show the deepest beta drop, pull (purple) milder.
+The magnitudes look very different (v1 ≈ −33 %, v2 ≈ −1.2 dB) but that is a <i>units</i> difference, not a disagreement
+(see caveat). Note also v1's much wider SEM bands: its three-stage interpolation injects between-subject variance that
+v2's single warp avoids.</p>
+
+<h2>3 · Per-subject example (wue05)</h2>
+<div class="pair v1">
+  <figure>
+    <figcaption><span class="tag t1">v1</span>wue05 — per-block CWT, linear interp, no smoothing</figcaption>
+    <img src="wue05_TF_v1.png" alt="v1 wue05 TF">
+  </figure>
+  <figure>
+    <figcaption><span class="tag t2">v2</span>wue05 — global grid, pchip, display smoothing</figcaption>
+    <img src="wue05_TF_v2.png" alt="v2 wue05 TF">
+  </figure>
+</div>
+<p>At the single-subject level the difference in <b>noise</b> is obvious. v1 is grainy and speckled with isolated
+gamma "hot pixels" (individual beta/gamma bursts surviving the linear interpolation), and the frequency axis stretches to
+~160 Hz. v2 resolves a clean beta-ERD trough around each velocity peak. Same data, same channel — the texture difference
+is entirely methodological.</p>
+
+<h2>4 · Concrete differences observed</h2>
+<table>
+<tr><th>Aspect</th><th class="v1c">v1 — what you see</th><th class="v2c">v2 — what you see</th></tr>
+<tr><td>Post-movement beta rebound</td><td class="v1c"><b>Not representable</b> (no rest-post phase; folded into baseline)</td><td class="v2c"><b>Clear +1.5 dB</b> rebound in 18–28 Hz (orange trace)</td></tr>
+<tr><td>Beta ERD (movement)</td><td class="v1c">Present, smeared across whole window</td><td class="v2c">Present, localised under each velocity peak</td></tr>
+<tr><td>Map texture</td><td class="v1c">Grainy; isolated gamma hot-pixels</td><td class="v2c">Smooth; graded modulation</td></tr>
+<tr><td>Colour scale</td><td class="v1c">min/max → outlier-compressed, mostly mid-green</td><td class="v2c">symmetric ±5 dB → physiological gradation</td></tr>
+<tr><td>Between-subject SEM</td><td class="v1c">Wide (triple interpolation adds variance)</td><td class="v2c">Tighter (single warp to global grid)</td></tr>
+<tr><td>Time axis</td><td class="v1c">Seconds from averaged latencies (fictitious trial)</td><td class="v2c">% of movement, onset/offset marked</td></tr>
+<tr><td>Frequency axis</td><td class="v1c">Uncontrolled (Morse default, to ~160 Hz/subject)</td><td class="v2c">Fixed [1,80] Hz, identical across subjects</td></tr>
+</table>
+
+<div class="caveat">
+<b>Caveat on comparing magnitudes.</b> v1 reports <b>percent change</b> <code>(P−bl)/bl·100</code> and v2 reports
+<b>decibels</b> <code>10·log10(P/bl)</code>; e.g. −33 % ≈ −1.7 dB and +1.5 dB ≈ +41 %. The traces are therefore
+<i>not</i> on the same axis — the meaningful comparison is the <b>pattern</b> (which effects appear, where, how cleanly),
+not the numbers. The two pipelines also use different baselines (v1: rest pre+post; v2: rest pre only), which is exactly
+why the PMBR survives in v2 and vanishes in v1.
+</div>
+
+<div class="key verdict">
+<b>Recommendation:</b> use <b>v2</b>. It reproduces every effect v1 shows, adds the post-movement beta rebound that v1
+structurally hides, and does so with less interpolation noise and an interpretable scale. The one thing to remember is
+that both pipelines time-warp, so neither preserves absolute latencies — read timing as "% of movement", not seconds.
+</div>
+
+<p class="foot">
+Generated by re-running both scripts unmodified except for path and output directory, over the same 8 subjects and same
+contralateral STN channel.
+v1 = <code>TF_analysis_LFP.m</code> → <code>RESULTS_compare\v1\</code>;
+v2 = <code>TF_analysis_LFP_v2.m</code> → <code>RESULTS_compare\v2\</code>.
+Full-resolution per-subject figures (all 8 subjects, normalised + non-normalised) are in those folders on
+<code>F:\Projects\Parkinson_ReachGrasp\Reprocessing</code>.
+</p>
+
+</body>
+</html>
