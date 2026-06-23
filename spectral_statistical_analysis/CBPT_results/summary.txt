@@ -1,0 +1,17 @@
+
+CLUSTER RESULTS  (sig = cluster p < 0.05)
+--------------------------------------------------------------------
+
+## Movement vs baseline (ERD/ERS)
+  Rest_pre vs Reach         no significant cluster
+  Rest_pre vs Grasp         no significant cluster
+  Rest_pre vs Pull          no significant cluster
+
+## Post-movement beta rebound (PMBR)
+  Rest_pre vs Rest_post      15.0- 33.6 Hz  p=0.0078  p_fwer=0.0547  mass=-56.1  (Rest_pre<Rest_post)
+
+## Within-movement progression
+  Reach vs Grasp            no significant cluster
+  Grasp vs Pull             no significant cluster
+  Reach vs Pull              21.2- 26.7 Hz  p=0.0156  p_fwer=0.1094  mass=-13.9  (Reach<Pull)
+--------------------------------------------------------------------

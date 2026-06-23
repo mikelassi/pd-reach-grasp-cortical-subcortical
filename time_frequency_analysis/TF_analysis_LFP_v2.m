@@ -526,6 +526,19 @@ out_dir_struct = fullfile(RESULTS_DIR, 'Baseline_01_median');
 if ~exist(out_dir_struct, 'dir'), mkdir(out_dir_struct); end
 save(fullfile(out_dir_struct, 'PSD_STRUCT_allSubjects.mat'), 'PSD_STRUCT', '-v7.3');
 
+%% ===== SAVE PER-SUBJECT WARPED TF (for time-frequency-plane statistics) =====
+% Each subject's median (over trials) rest-normalised warped TF map, on the
+% shared universal grid, so a downstream one-sample cluster test can localise
+% ERD/ERS in the (frequency x warped-movement-time) plane.
+TF_SUBJ = struct();
+TF_SUBJ.subjects       = SUBJECTS;
+TF_SUBJ.fr             = fr_glob;                 % [n_fr x 1] (descending)
+TF_SUBJ.time_axis_pct  = time_axis_pct;           % [1 x tot_length]
+TF_SUBJ.tf_db          = cat(3, all_subj_wt{:});  % [n_fr x tot_length x n_subj], dB re rest
+TF_SUBJ.phase_pct      = [t_onset_pct, t_grasp_pct, t_pull_pct, t_offset_pct];
+TF_SUBJ.global_med_len = global_med_len;
+save(fullfile(out_dir_struct, 'TF_SUBJ_allSubjects.mat'), 'TF_SUBJ', '-v7');
+
 %% ========== GRAND AVERAGE ACROSS SUBJECTS ==========
 % All subjects share the universal grid from the Pre-Pass, so tot_length
 % is identical for everyone — no second interpolation needed.
@@ -622,6 +635,7 @@ yyaxis right
 plot(time_axis_pct, kin_norm_ga, 'k', 'LineWidth', 2);
 ax_nn = gca; ax_nn.YAxis(2).Visible = 'off';
 set(gcf, 'Units', 'pixels', 'Position', [100, 100, 1200, 600]);
+
 print(fullfile(out_dir_nn, 'All_Subjects_Average_Power_TF_NO_NORM'), '-dpng', '-r300');
 savefig(fullfile(out_dir_nn, 'All_Subjects_Average_Power_TF_NO_NORM.fig'));
 

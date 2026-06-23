@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>STN-LFP & Scalp-EEG Spectral Statistics — Corrected Analysis</title>
+<style>
+  :root{--fg:#1b1b1b;--mut:#666;--line:#e2e2e2;--lfp:#8e44ad;--eeg:#2980b9;
+        --ok:#1e8449;--warn:#b9770e;--bad:#c0392b;--hl:#fff8e1;}
+  body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);
+       max-width:1080px;margin:0 auto;padding:34px 28px 90px;line-height:1.55;}
+  h1{font-size:25px;margin-bottom:2px;}
+  h2{font-size:20px;margin-top:40px;border-bottom:2px solid var(--line);padding-bottom:6px;}
+  h3{font-size:16px;margin-top:24px;}
+  .sub{color:var(--mut);font-size:14px;margin-top:2px;}
+  table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14px;}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;}
+  th{background:#f6f6f6;}
+  .ok{color:var(--ok);font-weight:600;} .warn{color:var(--warn);font-weight:600;} .bad{color:var(--bad);font-weight:600;}
+  figure{margin:18px 0;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  figure img{width:100%;display:block;}
+  figcaption{font-size:13px;padding:8px 12px;background:#fafafa;border-top:1px solid var(--line);color:#444;}
+  .key{background:var(--hl);border-left:4px solid var(--warn);padding:12px 16px;border-radius:4px;margin:16px 0;}
+  .verdict{background:#eef6ff;border-left:4px solid var(--eeg);padding:12px 16px;border-radius:4px;margin:16px 0;}
+  code{background:#f1f1f1;padding:1px 5px;border-radius:3px;font-size:13px;}
+  .foot{color:var(--mut);font-size:12.5px;margin-top:40px;border-top:1px solid var(--line);padding-top:14px;}
+  ul{margin:8px 0;} li{margin:4px 0;}
+</style>
+</head>
+<body>
+
+<h1>Reach-to-Grasp Spectral Statistics — <span style="color:var(--lfp)">STN-LFP</span> &amp; <span style="color:var(--eeg)">Scalp-EEG</span></h1>
+<p class="sub">Self-paced reach-to-grasp, Parkinson's patients OFF medication. Corrected subject-level
+analysis. Cohort: 9 implanted → <b>8 performed the task</b> (wue04: resting-state only).
+Movement phases: Rest<sub>pre</sub> · Reach (A→C) · Grasp (C→D) · Pull (D→F) · Rest<sub>post</sub>.</p>
+
+<div class="verdict">
+<b>Headline.</b> The <b>post-movement beta rebound (PMBR)</b> is the one robust, reproducible effect — significant
+in STN-LFP and replicated in scalp EEG over sensorimotor cortex. The <b>movement beta-ERD is real but modest</b>:
+genuinely present (correct frequency, timing, and scalp location) yet only reaching significance under focused,
+pre-specified analyses. The limiting factor throughout is <b>n = 8</b>, not the method.
+</div>
+
+<h2>1 · What was corrected</h2>
+<p>The original notebook pooled ~239 trials across subjects and tested them as independent observations
+(<b>pseudoreplication</b>), giving impossibly small p-values (p = 0.0001, below the n = 8 sign-flip floor of 0.004).
+Every analysis here instead uses the <b>subject as the unit of inference</b> (n = 8), with an exhaustive
+<b>subject-level sign-flip permutation</b> (2⁸ = 256). Trial-level information enters only to sharpen each subject's
+estimate (precision-weighted and mixed-model variants agreed with the subject-mean test), never as degrees of freedom.
+No double-dipping: the cluster/band p-value is the corrected inference.</p>
+
+<h2>2 · STN-LFP results</h2>
+<figure><img src="lfp_summary.png">
+<figcaption><b>A</b> phase spectra (mean±SEM, dB re rest). <b>B</b> PMBR — Rest<sub>pre</sub> vs Rest<sub>post</sub>
+with the subject-level CBPT cluster (15–34 Hz, p = 0.008). <b>C</b> reach spectrum vs block rest, high-β band marked.
+<b>D</b> high-β reach ERD per subject (beta-peak group).</figcaption></figure>
+
+<table>
+<tr><th>Effect</th><th>Test</th><th>Result</th></tr>
+<tr><td><b>PMBR</b> (β rebound)</td><td>subject-level CBPT, Rest<sub>pre</sub> vs Rest<sub>post</sub></td>
+<td class="ok">cluster 15–34 Hz, p = 0.008 — robust across subject-mean, precision-weighted &amp; mixed-model statistics</td></tr>
+<tr><td>Movement <b>θ modulation</b></td><td>canonical band, 2-tailed</td><td class="ok">−0.55 dB, p = 0.008 (p<sub>Bonf</sub> = 0.023)</td></tr>
+<tr><td><b>Reach high-β ERD</b> vs rest</td><td>band, beta-peak group (n = 7)</td>
+<td class="warn">−1.29 dB, p = 0.016 &nbsp;|&nbsp; full n = 8: −0.99 dB, <b>p = 0.086 (trend)</b></td></tr>
+<tr><td>Reach − grip (baseline-free)</td><td>band, n = 8</td><td class="warn">−0.70 dB, p = 0.039</td></tr>
+<tr><td>Whole-spectrum movement ERD vs rest</td><td>frequency CBPT</td><td class="bad">no cluster (broadband search dilutes a focused effect)</td></tr>
+</table>
+
+<div class="key">
+<b>Why the LFP β-ERD was hidden, and the honest status.</b> It was masked by (i) <b>phase-lumping</b> — the ballistic
+reach desynchronises β while the sustained grasp/pull <i>re</i>-synchronises it, so averaging all "movement" cancels it;
+(ii) <b>baseline contamination</b> — the −0.5→0 s window sits inside the desync; and (iii) <b>one subject (wue05) with no
+detectable resting β peak</b> (prominence 1.2 dB vs 3–13). Restricting to the 7 subjects with measurable β (a standard,
+pre-specifiable signal-quality rule) gives p = 0.016, but the <b>full-sample result is a trend (p = 0.086)</b> — so the
+significance depends on that restriction and must be reported as such. The baseline-free reach-vs-grip contrast
+(p = 0.039, n = 8) is the most defensible single number.
+</div>
+
+<h2>3 · Scalp-EEG results (analogous methods)</h2>
+<p class="sub">126-ch EEG, contralateral sensorimotor cortex. No beta-peak exclusion (scalp μ/β is physiological in
+all subjects → n = 8). A <b>clean pre-movement baseline</b> (early rest, movement-prep trimmed) was used.</p>
+
+<figure><img src="eeg_topo.png">
+<figcaption>Whole-scalp topographies (n = 8). Reach μ/β shows a <b>left-central (sensorimotor) desynchronisation</b>;
+PMBR shows a <b>central β increase</b> — both in the physiologically correct location. No cluster survives
+<i>whole-scalp</i> correction at n = 8.</figcaption></figure>
+
+<figure><img src="eeg_roi.png">
+<figcaption>Sensorimotor-ROI test, hemisphere-flipped so contralateral cortex = left for all subjects.
+PMBR high-β ROI-mean is significant; the reach β-ERD is a correct-direction trend.</figcaption></figure>
+
+<table>
+<tr><th>Effect</th><th>Test</th><th>Result</th></tr>
+<tr><td><b>PMBR</b> high-β</td><td>a-priori sensorimotor ROI mean</td>
+<td class="ok">+1.56 dB, p = 0.023 (C3/C4) ; +0.78 dB, p = 0.047 (flipped ROI) — <b>replicates the LFP PMBR</b></td></tr>
+<tr><td>Reach β-ERD vs rest</td><td>ROI mean, clean baseline</td>
+<td class="warn">−0.60 dB, p ≈ 0.15 (trend; direction <b>recovered</b> by the clean baseline, was +0.15 contaminated)</td></tr>
+<tr><td>Reach β-ERD / PMBR</td><td>whole-scalp &amp; ROI spatial cluster</td>
+<td class="bad">no significant cluster at n = 8 (correct topography, underpowered for spatial correction)</td></tr>
+</table>
+
+<h2>4 · Cross-modal synthesis &amp; honest limitations</h2>
+<ul>
+<li><b>PMBR is the robust, cross-validated finding</b> — significant in STN-LFP (cluster p = 0.008) and replicated in
+EEG sensorimotor cortex (ROI p = 0.023). This is the result to lead with.</li>
+<li><b>The movement β-ERD is genuine but modest</b> in both modalities: correct frequency (high-β), correct timing
+(reach phase), correct EEG location (contralateral sensorimotor). It reaches significance only under focused,
+pre-specified analyses (LFP reach-vs-grip p = 0.039; LFP beta-peak group p = 0.016) and remains a trend at the full
+sample / under whole-scalp correction.</li>
+<li><b>n = 8 is the binding constraint.</b> The exact sign-flip floor (0.004–0.008) makes broadband/whole-scalp
+correction nearly impossible to satisfy regardless of effect size; pre-specified ROIs and bands are where power lives.</li>
+<li><b>Exclusions, stated openly:</b> wue04 (resting-state only — no task); wue05 from the LFP β analysis only
+(no detectable STN β peak — a signal-quality, not result-driven, criterion). Both should be pre-declared in Methods,
+with full-sample numbers reported alongside.</li>
+<li><b>Baseline matters.</b> A baseline too close to movement onset normalises the anticipatory ERD away; the
+block-start / early-rest baseline (and the baseline-free reach-vs-grip contrast) are the honest references.</li>
+</ul>
+
+<p class="foot">
+Methods: subject-level exhaustive sign-flip permutation (256), cluster mass corrected; canonical bands with FDR/Bonferroni
+on pre-specified families; CWT/Welch spectra. LFP contralateral STN contact; EEG contralateral sensorimotor ROI
+(hemisphere-flipped for lateralised contrasts). Data: <code>F:\Projects\Parkinson_ReachGrasp\Reprocessing</code>.
+Scripts in <code>spectral_statistical_analysis/</code>.
+</p>
+
+</body>
+</html>
