@@ -16,7 +16,7 @@ import os, sys, numpy as np, pandas as pd, scipy.stats as st
 import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 try: sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 except Exception: pass
-TEMP=os.environ.get("TEMP", r"C:\Users\m.lassi\AppData\Local\Temp")
+TEMP=os.path.dirname(os.path.abspath(__file__))
 OUT=r"C:\Users\m.lassi\Documents\GitHub\pd-reach-grasp-cortical-subcortical\spectral_statistical_analysis\CBPT_results"
 
 neu=pd.read_csv(os.path.join(TEMP,"trial_table.csv")).rename(columns={'subj':'subject'})
