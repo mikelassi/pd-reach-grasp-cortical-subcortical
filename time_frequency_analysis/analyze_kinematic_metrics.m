@@ -6,7 +6,7 @@
 %    Level 1: all trials → per-subject mean  (blocks pooled)
 %    Level 2: per-subject means → group mean ± SEM
 %
-%  Reference values (Vissani et al. 2021, PD group, mean ± SD):
+%  Reference values (Vissani et al. 2021, PD group, n = 8):
 %    Peak wrist velocity  reach : 0.53 ± 0.07 m/s
 %    Peak wrist velocity  pull  : 0.57 ± 0.06 m/s
 %    Time to peak vel.    reach : 0.50 ± 0.03 s
@@ -15,9 +15,19 @@
 %    Radius of curvature  pull  : 0.38 ± 0.04 m
 %    PHA                        : 35.65 ± 3.87 %
 %    PCI                        : 0.67 ± 0.08
-%    C-score (PD)               : ~0.65 ± 0.46  estimated from Supp. Fig. 9
-%                                 (no text value in paper; 8 individual data points
-%                                  read from scatter: 0.0, 0.1, 0.6, 0.6, 0.6, 0.85, 1.0, 1.43)
+%    C-score (PD)               : 0.73 ± 0.17     (paper p.2, main text)
+%
+%  IMPORTANT — these ± values are SEM, not SD.
+%    The paper states on p.1 that "all data is reported as average ± standard
+%    deviation", but that is demonstrably wrong for the kinematics.  It reports
+%    C-score = 0.73 ± 0.17 (n = 8) while also stating (p.2) that those values
+%    range from 0.026 to 1.404.  For 8 values spanning that range with mean 0.73
+%    the MINIMUM possible SD is 0.368 — more than double the reported 0.17 — so
+%    0.17 cannot be an SD.  Read as SEM it implies SD ≈ 0.48, consistent both
+%    with the stated range and with the Supp. Fig. 9 scatter (≈ 0.46).
+%    Corroboration: our between-subject SDs are 2.1–3.1x the paper's reported ±
+%    across 7 of 9 metrics (sqrt(8) = 2.83); read as SEM our dispersion matches
+%    theirs closely (PHA 3.89 vs 3.87, radius 0.036 vs 0.04, t-to-peak 0.033 vs 0.03).
 %
 %  Author: Michael Lassi
 %% ============================================================
@@ -31,7 +41,9 @@ RESULTS_DIR = 'G:\Projects\Parkinson_ReachGrasp\Reprocessing\RESULTS_kinematics'
 if ~exist(RESULTS_DIR, 'dir'), mkdir(RESULTS_DIR); end
 
 %% ========== REFERENCE VALUES (Vissani et al. 2021, PD group) ==========
-% Format: [mean, SD]  — SD reported in paper; we compute SEM from our data
+% Format: [mean, SEM]  — see header note: the paper's ± values are SEM, not SD.
+% Paper PD group n = 8, so the implied between-subject SD is SEM * sqrt(N_PAPER).
+N_PAPER = 8;
 REF.peak_vel_reach  = [0.53, 0.07];
 REF.peak_vel_pull   = [0.57, 0.06];
 REF.t_peak_reach    = [0.50, 0.03];
@@ -40,7 +52,7 @@ REF.radius_reach    = [0.36, 0.04];
 REF.radius_pull     = [0.38, 0.04];
 REF.PHA             = [35.65, 3.87];
 REF.PCI             = [0.67,  0.08];
-REF.C_score         = [0.65,  0.46];   % estimated from Supp. Fig. 9 scatter (approximate)
+REF.C_score         = [0.73,  0.17];   % paper p.2 main text (was 0.65 ± 0.46, eyeballed from Supp. Fig. 9)
 
 %% ========== LOAD CSV ==========
 T = readtable(CSV_PATH);
@@ -98,31 +110,37 @@ metric_labels = { ...
     'Radius of curvature pull (m)', 'pull_median_radius_m',    REF.radius_pull; ...
     'PHA (%)',                      'PHA_pct',                  REF.PHA; ...
     'PCI',                          'PCI',                      REF.PCI; ...
-    'C-score (approx. from Fig.9)', 'C_score',                  REF.C_score; ...
+    'C-score',                      'C_score',                  REF.C_score; ...
 };
 
-fprintf('\n%s\n', repmat('=',1,80));
-fprintf('%-38s  %16s  %16s  %8s\n', 'Metric', 'Ours (mean±SEM)', 'Vissani (mean±SD)', 'Match?');
-fprintf('%s\n', repmat('-',1,80));
+fprintf('\n%s\n', repmat('=',1,88));
+fprintf('%-32s  %16s  %18s  %7s %7s\n', ...
+    'Metric', 'Ours (mean±SEM)', 'Vissani (mean±SEM)', 'z', 'Agree?');
+fprintf('%s\n', repmat('-',1,88));
 for r = 1:size(metric_labels,1)
-    label  = metric_labels{r,1};
-    mname  = metric_labels{r,2};
-    ref_mu = metric_labels{r,3}(1);
-    ref_sd = metric_labels{r,3}(2);
-    our_mu = grp_mean.(mname);
+    label   = metric_labels{r,1};
+    mname   = metric_labels{r,2};
+    ref_mu  = metric_labels{r,3}(1);
+    ref_sem = metric_labels{r,3}(2);
+    our_mu  = grp_mean.(mname);
     our_sem = grp_sem.(mname);
-    our_sd = grp_std.(mname);
-    % "Match" = our mean within 2 SD of paper mean (rough check)
-    within = abs(our_mu - ref_mu) <= 2 * ref_sd;
-    flag = '  ✓';
-    if ~within, flag = '  ✗'; end
-    fprintf('%-38s  %7.3f ± %5.3f  %7.3f ± %5.3f  %s\n', ...
-        label, our_mu, our_sem, ref_mu, ref_sd, flag);
+    % Two-sample z on the group means, combining both standard errors.
+    % This is the appropriate test now that the paper's ± is known to be SEM.
+    % The previous check (|diff| <= 2*ref) was in effect ±2 SEM ≈ ±0.71 SD,
+    % i.e. STRICTER than the 2 SD it claimed to apply — not looser.
+    z     = (our_mu - ref_mu) / sqrt(our_sem^2 + ref_sem^2);
+    agree = abs(z) < 1.96;
+    flag  = '  ✓';
+    if ~agree, flag = '  ✗'; end
+    fprintf('%-32s  %7.3f ± %6.3f  %8.3f ± %6.3f  %7.2f %s\n', ...
+        label, our_mu, our_sem, ref_mu, ref_sem, z, flag);
 end
-fprintf('%s\n', repmat('=',1,80));
-fprintf('(Our SD across subjects shown in boxplots; SEM reported above)\n\n');
+fprintf('%s\n', repmat('=',1,88));
+fprintf(['z = two-sample z on group means (combined SEM); |z| < 1.96 = no ' ...
+    'significant difference.\nBoxplots show between-subject spread; the shaded ' ...
+    'band is the paper''s implied SD (SEM*sqrt(%d)).\n\n'], N_PAPER);
 
-% Also print C-score (no reference value)
+% Also print C-score on its own (C-tilde has no published reference)
 fprintf('C-score  : %.3f ± %.3f (mean ± SEM across subjects)\n', ...
     grp_mean.C_score, grp_sem.C_score);
 fprintf('C-tilde  : %.3f ± %.3f\n', grp_mean.C_tilde, grp_sem.C_tilde);
@@ -135,7 +153,7 @@ fs_ax    = 13;
 fs_title = 14;
 
 % Helper: draw a single boxplot panel with reference overlay
-function ax = one_box(y_data, y_label, ref_mu, ref_sd, fig_title, box_col, dot_col)
+function ax = one_box(y_data, y_label, ref_mu, ref_sem, fig_title, box_col, dot_col)
     ax = gca;
     bp = boxchart(ones(size(y_data)), y_data, ...
         'BoxFaceColor', box_col, 'WhiskerLineColor', box_col, ...
@@ -144,8 +162,13 @@ function ax = one_box(y_data, y_label, ref_mu, ref_sd, fig_title, box_col, dot_c
     % Jittered individual subject points
     jitter = 0.08 * (rand(numel(y_data),1) - 0.5);
     scatter(1 + jitter, y_data, 50, dot_col, 'filled', 'MarkerFaceAlpha', 0.7);
-    % Reference value line (Vissani mean ± SD as shaded band)
+    % Reference band (Vissani et al. 2021).  The boxplot and dots above show
+    % the BETWEEN-SUBJECT spread of our per-subject means, so the reference
+    % band has to be on that same scale.  The paper's ± is SEM, so convert to
+    % the implied SD before shading — shading the raw SEM draws a band about
+    % 2.83x too narrow and makes the agreement look far worse than it is.
     if ~isnan(ref_mu)
+        ref_sd = ref_sem * sqrt(8);          % paper PD group n = 8
         xpatch = [0.55, 1.45, 1.45, 0.55];
         ypatch = [ref_mu-ref_sd, ref_mu-ref_sd, ref_mu+ref_sd, ref_mu+ref_sd];
         patch(xpatch, ypatch, [0.9 0.5 0.5], 'FaceAlpha', 0.25, 'EdgeColor','none');
@@ -219,10 +242,10 @@ one_box(subj_means.PCI, 'PCI', ...
 print(fullfile(RESULTS_DIR,'fig_PCI'), '-dpng', '-r300');
 
 % ---- Figure F: Fig. 1d — C-score ----
-% Reference: ~0.65 ± 0.46 estimated from Supp. Fig. 9 scatter plot
+% Reference: 0.73 ± 0.17 (SEM), paper p.2 main text
 figure('Name','C-score','Position',[100 100 380 480]);
 one_box(subj_means.C_score, 'C-score  [a.u.]', ...
-    REF.C_score(1), REF.C_score(2), 'C-score  (PD, n=8) — cf. Fig. 1d  [approx. ref]', box_col, dot_col);
+    REF.C_score(1), REF.C_score(2), 'C-score  (PD, n=8) — cf. Fig. 1d', box_col, dot_col);
 print(fullfile(RESULTS_DIR,'fig_Cscore'), '-dpng', '-r300');
 
 % ---- Figure G: Phase durations ----
